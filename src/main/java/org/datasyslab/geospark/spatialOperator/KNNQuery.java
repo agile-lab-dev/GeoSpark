@@ -209,4 +209,5 @@ public class KNNQuery implements Serializable{
 			return geometryResult;
 		}
 	}
+
 }

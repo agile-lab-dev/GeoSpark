@@ -8,6 +8,7 @@ package org.datasyslab.geospark.spatialOperator;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -17,6 +18,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.datasyslab.geospark.enums.FileDataSplitter;
 import org.datasyslab.geospark.enums.IndexType;
+import org.datasyslab.geospark.spatialList.LineStringList;
 import org.datasyslab.geospark.spatialRDD.LineStringRDD;
 import org.datasyslab.geospark.spatialRDD.LineStringRDDTest;
 import org.junit.AfterClass;
@@ -28,6 +30,10 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.LineString;
+import scala.Boolean;
+import scala.collection.JavaConversions.*;
+import scala.collection.JavaConverters.*;
+import scala.tools.nsc.typechecker.PatternMatching;
 
 
 // TODO: Auto-generated Javadoc
@@ -156,5 +162,39 @@ public class LineStringKnnTest {
     	}
 
     }
+
+
+    @Test
+    public void mytestSpatialKnnQuery() throws Exception {
+
+        GeometryFactory fact=new GeometryFactory();
+
+        queryPoint = fact.createPoint(new Coordinate(7.6, 45.01));
+
+        List<Coordinate> coordinatesList = new ArrayList<Coordinate>();
+        coordinatesList.add(new Coordinate(7.0,45.0));
+        coordinatesList.add(new Coordinate(8.0,45.0));
+        LineString spatialObject = fact.createLineString(coordinatesList.toArray(new Coordinate[coordinatesList.size()]));
+
+        List<Coordinate> coordinatesList2 = new ArrayList<Coordinate>();
+        coordinatesList2.add(new Coordinate(7.5,45.02));
+        coordinatesList2.add(new Coordinate(7.7,45.02));
+        LineString spatialObject2 = fact.createLineString(coordinatesList2.toArray(new Coordinate[coordinatesList2.size()]));
+
+
+        ArrayList<LineString> result= new ArrayList<LineString>();
+        result.add(spatialObject);
+        result.add(spatialObject2);
+
+        LineStringList lineStringList = new LineStringList(result);
+        lineStringList.buildIndex(IndexType.RTREE);
+
+        Iterable<LineString> queryResult = KNNQueryMem.SpatialKnnQueryJava(lineStringList, queryPoint, 2, true);
+        for (LineString line: queryResult ) {
+            System.out.println(line.toString());
+        }
+
+    }
+
 
 }
