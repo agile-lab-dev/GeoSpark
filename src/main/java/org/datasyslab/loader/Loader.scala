@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequenceFactory
 
 import scala.io.Source
+import scala.util.Try
 
 /**
   * Created by paolo on 25/01/2017.
@@ -16,7 +17,7 @@ trait Loader {
 
 class CTLLoader(geometryPosition: Int) extends Loader{
 
-  val separator = """||"""
+  val separator = """\|\|"""
   val geoSeparator = ';'
   val openStep = '('
   val closeStep = ')'
@@ -26,22 +27,37 @@ class CTLLoader(geometryPosition: Int) extends Loader{
   override def load(source: String): Iterator[(Array[String],LineString)] = {
 
     var data = false
-    (for (line <- Source.fromFile(source).getLines())
-      yield {
-        if (!data) {
+    val reader = Source.fromFile(source,"UTF-8")
+
+
+    reader.getLines.flatMap(line => {
+        val ls: Option[(Array[String], LineString)] = if (!data) {
           data = if (line == "BEGINDATA") true else false
           Option.empty[(Array[String],LineString)]
         } else {
-          val fields = line.split(separator,-1)
-          val geometry = fields(geometryPosition)
-          val lineString = buildLineString(geometry)
-          Some((fields, lineString))
+
+            val fields: Array[String] = line.split(separator)
+            if(fields.size == 0){
+              println("bad splitting")
+              Option.empty[(Array[String],LineString)]
+            }else {
+              val geometry = fields(geometryPosition)
+              val lineString = buildLineString(geometry)
+              lineString.map(ls => (fields, ls))
+            }
         }
-      }).flatten
+        ls
+      })
   }
 
-  def buildLineString(geoStr: String): LineString = {
-    buildLineString(parseGeometry(geoStr))
+  def buildLineString(geoStr: String): Option[LineString] = {
+    val fields = parseGeometry(geoStr)
+    if(fields.size == 205){
+      Some(buildLineString(fields))
+    }else{
+      println(fields.size)
+      None
+    }
   }
 
   def buildLineString(fields: Array[String]): LineString = {
@@ -60,8 +76,15 @@ class CTLLoader(geometryPosition: Int) extends Loader{
     }else{
       val cleanGeoStr = if(geoStr.head == closeStep) geoStr.tail else geoStr
       val sepPos = cleanGeoStr.indexOf(geoSeparator)
-      if(sepPos == -1)
-        Array.empty[String]
+      if(sepPos == -1) {
+        val closePos = cleanGeoStr.indexOf(closeStep)
+        if (closePos != -1) {
+          val newField = cleanGeoStr.substring(0, closePos)
+          Array(newField)
+        }else{
+          Array.empty[String]
+        }
+      }
       else {
         val newField = cleanGeoStr.substring(0, sepPos)
         val otherPart = cleanGeoStr.substring(sepPos + 2)

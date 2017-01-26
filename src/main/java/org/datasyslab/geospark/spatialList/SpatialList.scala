@@ -35,12 +35,12 @@ import scala.collection.JavaConverters._
 // TODO: Auto-generated Javadoc
 
 /**
- * The Class SpatialRDD.
+ * The Class SpatialList.
  */
 abstract class SpatialList extends Serializable{
 	
 	/** The Constant logger. */
-		val logger = Logger.getLogger(this.getClass)
+		//val logger = Logger.getLogger(this.getClass)
     
     /** The total number of records. */
     var totalNumberOfRecords = -1
