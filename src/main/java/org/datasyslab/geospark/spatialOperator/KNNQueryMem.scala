@@ -6,7 +6,7 @@
  */
 package org.datasyslab.geospark.spatialOperator;
 
-import com.vividsolutions.jts.geom.{_}
+import com.vividsolutions.jts.geom._
 import org.apache.spark.api.java.JavaRDD
 import org.apache.spark.api.java.function.Function
 import org.datasyslab.geospark.knnJudgement._
@@ -16,9 +16,11 @@ import org.datasyslab.geospark.spatialRDD.PolygonRDD
 import org.datasyslab.geospark.spatialRDD.RectangleRDD
 import java.io.Serializable
 import java.util.ArrayList
+
+import org.datasyslab.geospark.spatialList.GeometryList
+
 import scala.collection.JavaConverters._
 
-import org.datasyslab.geospark.spatialList.LineStringList;
 
 
 // TODO: Auto-generated Javadoc
@@ -38,7 +40,7 @@ object KNNQueryMem extends Serializable {
 	 * @param useIndex the use index
 	 * @return the list
 	 */
-	def SpatialKnnQuery( spatialList: LineStringList, queryCenter: Point , k: Int, useIndex: Boolean): List[LineString] = {
+	def SpatialKnnQuery[T <: Geometry]( spatialList: GeometryList[T], queryCenter: Point , k: Int, useIndex: Boolean = true): List[T] = {
 		// For each partation, build a priority queue that holds the topk
 		//@SuppressWarnings("serial")
 		if(useIndex)
@@ -49,17 +51,21 @@ object KNNQueryMem extends Serializable {
 					val fact = new GeometryFactory()
 					val tmp = KnnJudgementUsingIndexS.invoke(spatialList.index, queryCenter,k)
 					val result = tmp.sorted(new GeometryDistanceOrdering(queryCenter)).take(k)
-					result.map(r => r.asInstanceOf[LineString]).toList
+					result.map(r => r.asInstanceOf[T]).toList
 		}
 		else
 		{
-			val tmp = GeometryKnnJudgementS.invoke(spatialList.rawSpatialCollection.toIterator, queryCenter,k);
-			val result: Array[Object] = tmp.sorted(new GeometryDistanceOrdering(queryCenter)).take(k)
-			result.map(r => r.asInstanceOf[LineString]).toList
+			if(spatialList.rawSpatialCollection == null) {
+				throw new IllegalArgumentException("You can't invoke raw search if you built index, remove buildIndex from your load procedure")
+			}else {
+				val tmp = GeometryKnnJudgementS.invoke(spatialList.rawSpatialCollection.toIterator, queryCenter, k);
+				val result: Array[Object] = tmp.sorted(new GeometryDistanceOrdering(queryCenter)).take(k)
+				result.map(r => r.asInstanceOf[T]).toList
+			}
 		}
 	}
 
-	def SpatialKnnQueryJava( spatialList: LineStringList, queryCenter: Point , k: Int, useIndex: Boolean): java.util.List[LineString] = {
+	def SpatialKnnQueryJava[T <: Geometry]( spatialList: GeometryList[T], queryCenter: Point , k: Int, useIndex: Boolean = true): java.util.List[T] = {
 		SpatialKnnQuery(spatialList, queryCenter, k, useIndex).asJava
 	}
 

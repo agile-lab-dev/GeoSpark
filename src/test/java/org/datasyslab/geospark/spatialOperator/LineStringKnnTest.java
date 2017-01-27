@@ -18,7 +18,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.datasyslab.geospark.enums.FileDataSplitter;
 import org.datasyslab.geospark.enums.IndexType;
-import org.datasyslab.geospark.spatialList.LineStringList;
+import org.datasyslab.geospark.spatialList.GeometryList;
 import org.datasyslab.geospark.spatialRDD.LineStringRDD;
 import org.datasyslab.geospark.spatialRDD.LineStringRDDTest;
 import org.junit.AfterClass;
@@ -186,7 +186,7 @@ public class LineStringKnnTest {
         result.add(spatialObject);
         result.add(spatialObject2);
 
-        LineStringList lineStringList = new LineStringList(result);
+        GeometryList lineStringList = new GeometryList(result);
         lineStringList.buildIndex(IndexType.RTREE);
 
         Iterable<LineString> queryResult = KNNQueryMem.SpatialKnnQueryJava(lineStringList, queryPoint, 2, true);

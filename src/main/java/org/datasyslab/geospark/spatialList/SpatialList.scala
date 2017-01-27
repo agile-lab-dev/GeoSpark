@@ -86,10 +86,10 @@ abstract class SpatialList extends Serializable{
 	def buildIndex(indexType: IndexType): Unit = {
 
 		val rt = if (indexType == IndexType.RTREE) new STRtree() else new Quadtree()
+		val geometryFactory = new GeometryFactory();
 		this.rawSpatialCollection.foreach(spatialObject => {
 
 			if (spatialObject.isInstanceOf[Envelope]) {
-				val geometryFactory = new GeometryFactory();
 				val castedSpatialObject = spatialObject.asInstanceOf[Envelope];
 				val item = geometryFactory.toGeometry(castedSpatialObject);
 				if (castedSpatialObject.getUserData() != null) {
@@ -107,6 +107,7 @@ abstract class SpatialList extends Serializable{
 
 		rt.query(new Envelope(0.0, 0.0, 0.0, 0.0))
 		this.index = rt
+		this.rawSpatialCollection = null
 
 	}
 	

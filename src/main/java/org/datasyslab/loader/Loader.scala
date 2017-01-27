@@ -2,6 +2,8 @@ package org.datasyslab.loader
 
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequenceFactory
+import org.datasyslab.geospark.enums.IndexType
+import org.datasyslab.geospark.spatialList.{GeometryList, Street, StreetType}
 
 import scala.io.Source
 import scala.util.Try
@@ -11,7 +13,7 @@ import scala.util.Try
   */
 trait Loader {
 
-  def load(source: String): Iterator[(Array[String],LineString)]
+  def loadGeometry(source: String): Iterator[(Array[String],Geometry)]
 
 }
 
@@ -24,16 +26,49 @@ class CTLLoader(geometryPosition: Int) extends Loader{
 
   val sridFactory8003 = new GeometryFactory(new PrecisionModel(), 8003, CoordinateArraySequenceFactory.instance())
 
-  override def load(source: String): Iterator[(Array[String],LineString)] = {
+  def load(source: String): GeometryList[Street] = {
+    val streetList: Iterator[Street] = loadGeometry(source).map(e => {
+      val lr: LineString = e._2.asInstanceOf[LineString]
+      val fields = e._1
+      val streetType: String = fields(4)
+      val st = streetType match {
+        case "\"1\"" => StreetType.Motorway
+        case "\"2\"" => StreetType.ExtraUrban
+        case "\"3\"" => StreetType.Area1_Large
+        case "\"4\"" => StreetType.Area2_Medium
+        case "\"5\"" => StreetType.Area3_Small
+        case _ => StreetType.Unknown
+      }
+
+      val length: Double = fields(8).replace(',', '.').toDouble
+      var bidirected: Boolean = false
+      if (fields(10) == "\"Y\"") bidirected = true
+      val street: String = fields(11)
+      val city: String = fields(12)
+      val county: String = fields(13)
+      val state: String = fields(14)
+      val country: String = fields(15)
+      val fromSpeed: Integer = fields(16).toInt
+      val toSpeed: Integer = fields(17).toInt
+      Street(lr, street, city, county, state, country, Math.max(fromSpeed, toSpeed), bidirected, length, st)
+    })
+
+    val streetIndex = new GeometryList[Street](streetList.toList)
+    streetIndex.buildIndex(IndexType.RTREE)
+
+    streetIndex
+  }
+
+  override def loadGeometry(source: String): Iterator[(Array[String],Geometry)] = {
 
     var data = false
     val reader = Source.fromFile(source,"UTF-8")
 
 
     reader.getLines.flatMap(line => {
-        val ls: Option[(Array[String], LineString)] = if (!data) {
+        val ls: Option[(Array[String], Geometry)] = if (!data) {
           data = if (line == "BEGINDATA") true else false
-          Option.empty[(Array[String],LineString)]
+          Option.empty[(Array[String],Geometry)]
         } else {
 
             val fields: Array[String] = line.split(separator)
@@ -42,7 +77,7 @@ class CTLLoader(geometryPosition: Int) extends Loader{
               Option.empty[(Array[String],LineString)]
             }else {
               val geometry = fields(geometryPosition)
-              val lineString = buildLineString(geometry)
+              val lineString = buildGeometry(geometry)
               lineString.map(ls => (fields, ls))
             }
         }
@@ -50,24 +85,27 @@ class CTLLoader(geometryPosition: Int) extends Loader{
       })
   }
 
-  def buildLineString(geoStr: String): Option[LineString] = {
+  def buildGeometry(geoStr: String): Option[Geometry] = {
     val fields = parseGeometry(geoStr)
     if(fields.size == 205){
-      Some(buildLineString(fields))
+      Some(buildGeometry(fields))
     }else{
       println(fields.size)
       None
     }
   }
 
-  def buildLineString(fields: Array[String]): LineString = {
+  def buildGeometry(fields: Array[String]): Geometry = {
     val geotype = fields(0)
-    val lonlat = fields.slice(105, fields.length)
-    val lonlatGood = lonlat.filterNot(_.isEmpty)
-    val coordinates: Iterator[Coordinate] = lonlatGood.sliding(2,2).map(ll => new Coordinate(ll(0).replace(',','.').toDouble, ll(1).replace(',','.').toDouble))
+    if(geotype == "2002") {
+      val lonlat = fields.slice(105, fields.length)
+      val lonlatGood = lonlat.filterNot(_.isEmpty)
+      val coordinates: Iterator[Coordinate] = lonlatGood.sliding(2, 2).map(ll => new Coordinate(ll(0).replace(',', '.').toDouble, ll(1).replace(',', '.').toDouble))
 
-    sridFactory8003.createLineString(coordinates.toArray)
-
+      sridFactory8003.createLineString(coordinates.toArray)
+    }else{
+      throw new NotImplementedError("Only lines are handled")
+    }
   }
 
   def parseGeometry(geoStr: String): Array[String] = {

@@ -23,9 +23,9 @@ import scala.collection.JavaConversions._
 /**
  * The Class LineStringRDD.
  */
-class LineStringList(polygonList: List[LineString]) extends SpatialList{
+class GeometryList[T <: Geometry](polygonList: List[T]) extends SpatialList{
 
-    def this(lineList: ArrayList[LineString]) = this( lineList.toArray().map(s => s.asInstanceOf[LineString]).toList )
+    def this(lineList: ArrayList[T]) = this( lineList.toList )
 
 		this.rawSpatialCollection = polygonList
     this.boundary();
