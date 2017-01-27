@@ -17,6 +17,20 @@ trait Loader {
 
 }
 
+object CTLLoader{
+
+  //Pay attentio to side effects
+
+  var index: GeometryList[Street] = null
+  def getStreetIndex(path: String) = {
+    if (index == null){
+      index = new CTLLoader(7).load(path)
+    }
+    index
+  }
+
+}
+
 class CTLLoader(geometryPosition: Int) extends Loader{
 
   val separator = """\|\|"""
