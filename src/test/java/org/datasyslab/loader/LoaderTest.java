@@ -1,22 +1,17 @@
 package org.datasyslab.loader;
 
-import com.vividsolutions.jts.geom.*;
-import org.datasyslab.geospark.enums.IndexType;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import org.datasyslab.geospark.spatialList.GeometryList;
 import org.datasyslab.geospark.spatialList.Street;
-import org.datasyslab.geospark.spatialList.StreetType;
 import org.datasyslab.geospark.spatialOperator.KNNQueryMem;
 import org.junit.Test;
-import scala.Enumeration;
-import scala.Tuple2;
-import scala.collection.Iterator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.Random;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Created by paolo on 25/01/2017.
