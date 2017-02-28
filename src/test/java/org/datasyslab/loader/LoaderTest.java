@@ -58,18 +58,18 @@ public class LoaderTest {
         long start = System.currentTimeMillis();
 
         CTLLoader loader = new CTLLoader(7);
-        GeometryList<Street> lineStringList = loader.load("C:\\Users\\paolo\\Desktop\\network_link_ile_de_france.ctl");
+        GeometryList<Street> lineStringList = loader.load("C:\\Users\\paolo\\Desktop\\data\\out2.ctl");
 
         long end = System.currentTimeMillis();
         System.out.println("time: "+(end-start) + " ms");
 
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      /*  ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(lineStringList);
         oos.close();
         System.out.println(baos.size());
-
+*/
 
 
         //48.865078, 2.329587
@@ -94,7 +94,7 @@ public class LoaderTest {
         Random r = new Random();
 
         long start1 = System.currentTimeMillis();
-        for(int i=0; i<100; i++){
+        for(int i=0; i<1000; i++){
 
             double nexty = miny + r.nextDouble()*deltay;
             double nextx = minx + r.nextDouble()*deltax;
@@ -104,7 +104,7 @@ public class LoaderTest {
             Street queryResult = KNNQueryMem.SpatialKnnQueryJava(lineStringList, queryPoint, 1, true).get(0);
             //long end2 = System.currentTimeMillis();
             //System.out.println("time: "+(end2-start2) + " ms");
-            System.out.println(queryResult.toString());
+            //System.out.println(queryResult.toString());
 
         }
 

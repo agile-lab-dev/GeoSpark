@@ -41,7 +41,13 @@ class CTLLoader(geometryPosition: Int) extends Loader{
   val sridFactory8003 = new GeometryFactory(new PrecisionModel(), 8003, CoordinateArraySequenceFactory.instance())
 
   def load(source: String): GeometryList[Street] = {
+    var i=0
     val streetList: Iterator[Street] = loadGeometry(source).map(e => {
+
+      if(i % 10000 == 0){
+        println("loaded "+i+" lines")
+      }
+
       val lr: LineString = e._2.asInstanceOf[LineString]
       val fields = e._1
       val streetType: String = fields(4)
@@ -64,12 +70,17 @@ class CTLLoader(geometryPosition: Int) extends Loader{
       val country: String = fields(15)
       val fromSpeed: Integer = fields(16).toInt
       val toSpeed: Integer = fields(17).toInt
+      i += 1
+
       Street(lr, street, city, county, state, country, Math.max(fromSpeed, toSpeed), bidirected, length, st)
+
     })
 
-    val streetIndex = new GeometryList[Street](streetList.toList)
+    val streetL = streetList.toList
+    println("starting to build index")
+    val streetIndex = new GeometryList[Street](streetL)
     streetIndex.buildIndex(IndexType.RTREE)
-
+    println("index built")
     streetIndex
   }
 
