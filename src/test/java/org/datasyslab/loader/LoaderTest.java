@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import org.datasyslab.geospark.spatialList.GeometryList;
+import org.datasyslab.geospark.spatialList.GzippedStreet;
 import org.datasyslab.geospark.spatialList.Street;
 import org.datasyslab.geospark.spatialOperator.KNNQueryMem;
 import org.junit.Test;
@@ -12,7 +13,7 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.util.Random;
-
+import org.datasyslab.loader.CTLLoader;
 /**
  * Created by paolo on 25/01/2017.
  */

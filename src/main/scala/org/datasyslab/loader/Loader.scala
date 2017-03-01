@@ -3,7 +3,7 @@ package org.datasyslab.loader
 import com.vividsolutions.jts.geom._
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequenceFactory
 import org.datasyslab.geospark.enums.IndexType
-import org.datasyslab.geospark.spatialList.{GeometryList, Street, StreetType}
+import org.datasyslab.geospark.spatialList.{GeometryList, GzippedStreet, Street, StreetType}
 
 import scala.io.Source
 import scala.util.Try
@@ -19,9 +19,9 @@ trait Loader {
 
 object CTLLoader{
 
-  //Pay attentio to side effects
+  //Pay attention to side effects
 
-  var index: GeometryList[Street] = null
+  var index: GeometryList[GzippedStreet] = null
   def getStreetIndex(path: String) = {
     if (index == null){
       index = new CTLLoader(7).load(path)
